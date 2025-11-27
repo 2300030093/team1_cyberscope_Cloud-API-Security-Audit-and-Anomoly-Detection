@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ticket-postgres
+    environment:
+      POSTGRES_DB: ticketbooking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ticket-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticket-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ticket-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticket-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/ticketbooking
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-256-bit-secret-key-change-this-in-production-minimum-32-characters
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ticket-network
+    volumes:
+      - ./uploads:/app/uploads
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ticket-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ticket.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ticket-network
+
+networks:
+  ticket-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+

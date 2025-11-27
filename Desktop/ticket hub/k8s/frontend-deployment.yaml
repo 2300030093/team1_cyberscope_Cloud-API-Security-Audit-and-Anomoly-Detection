@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-frontend
+  namespace: default
+  labels:
+    app: ticket-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ticket-frontend
+  template:
+    metadata:
+      labels:
+        app: ticket-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: your-dockerhub-username/ticket-booking-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+

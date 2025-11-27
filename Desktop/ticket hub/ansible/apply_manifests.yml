@@ -1,0 +1,67 @@
+---
+- name: Apply Kubernetes manifests
+  hosts: all
+  become: yes
+  tasks:
+    - name: Apply ConfigMap
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/configmap.yaml') | from_yaml }}"
+
+    - name: Apply Secret
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/secret.yaml') | from_yaml }}"
+
+    - name: Apply PostgreSQL StatefulSet
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/postgres-statefulset.yaml') | from_yaml }}"
+
+    - name: Apply PostgreSQL Service
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/postgres-service.yaml') | from_yaml }}"
+
+    - name: Wait for PostgreSQL to be ready
+      k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: default
+        label_selectors:
+          - app=postgres
+      register: postgres_pods
+      until: postgres_pods.resources | length > 0
+      retries: 30
+      delay: 10
+
+    - name: Apply Backend Deployment
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/backend-deployment.yaml') | from_yaml }}"
+
+    - name: Apply Backend Service
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/backend-service.yaml') | from_yaml }}"
+
+    - name: Apply Frontend Deployment
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/frontend-deployment.yaml') | from_yaml }}"
+
+    - name: Apply Frontend Service
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/frontend-service.yaml') | from_yaml }}"
+
+    - name: Apply Ingress
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/ingress.yaml') | from_yaml }}"
+
+    - name: Apply HPA
+      k8s:
+        state: present
+        definition: "{{ lookup('file', '/opt/ticket-booking/k8s/hpa.yaml') | from_yaml }}"
+

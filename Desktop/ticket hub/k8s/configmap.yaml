@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ticket-booking-config
+  namespace: default
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  DB_USERNAME: "postgres"
+  DB_URL: "jdbc:postgresql://postgres-service:5432/ticketbooking"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  SERVER_PORT: "8081"
+  CORS_ORIGINS: "http://localhost:8080,https://yourdomain.com"
+  FILE_UPLOAD_DIR: "/app/uploads"
+  POSTER_DIR: "/app/uploads/posters"
+  SEAT_LOCK_TTL: "180"
+

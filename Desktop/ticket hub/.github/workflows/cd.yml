@@ -1,0 +1,42 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Install Ansible
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ansible
+    
+    - name: Configure Ansible inventory
+      run: |
+        echo "[servers]" > inventory.ini
+        echo "${{ secrets.SERVER_HOST }} ansible_host=${{ secrets.SERVER_HOST }} ansible_user=${{ secrets.SERVER_USER }} ansible_ssh_private_key_file=${{ secrets.SSH_PRIVATE_KEY }}" >> inventory.ini
+        echo "" >> inventory.ini
+        echo "[servers:vars]" >> inventory.ini
+        echo "use_kubernetes=${{ secrets.USE_KUBERNETES }}" >> inventory.ini
+        echo "db_password=${{ secrets.DB_PASSWORD }}" >> inventory.ini
+        echo "jwt_secret=${{ secrets.JWT_SECRET }}" >> inventory.ini
+    
+    - name: Deploy with Ansible
+      run: |
+        ansible-playbook -i inventory.ini ansible/deploy.yml
+    
+    - name: Verify deployment
+      run: |
+        sleep 30
+        curl -f http://${{ secrets.SERVER_HOST }}:8081/actuator/health || exit 1
+

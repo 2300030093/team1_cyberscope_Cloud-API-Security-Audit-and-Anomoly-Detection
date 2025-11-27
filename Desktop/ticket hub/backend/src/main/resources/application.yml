@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: ticket-booking-backend
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketbooking}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+  
+  # Redis Configuration (Optional)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-change-this-in-production-minimum-32-characters}
+  expiration: 86400000 # 24 hours in milliseconds
+  refresh-expiration: 604800000 # 7 days in milliseconds
+
+# Application Configuration
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8080,http://localhost:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+  
+  seat-lock:
+    ttl-seconds: 180 # 3 minutes
+  
+  file:
+    upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+    poster-dir: ${POSTER_DIR:./uploads/posters}
+  
+  payment:
+    stripe:
+      api-key: ${STRIPE_API_KEY:}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    razorpay:
+      key-id: ${RAZORPAY_KEY_ID:}
+      key-secret: ${RAZORPAY_KEY_SECRET:}
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8081}
+  error:
+    include-message: always
+    include-stacktrace: on_param
+    include-binding-errors: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.ticketbooking: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+

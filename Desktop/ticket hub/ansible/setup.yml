@@ -1,0 +1,24 @@
+---
+- name: Complete Setup for Ticket Booking System
+  hosts: all
+  become: yes
+  tasks:
+    - name: Include Docker installation
+      include_tasks: install_docker.yml
+
+    - name: Include Kubernetes installation
+      include_tasks: install_kubernetes.yml
+      when: use_kubernetes | default(false)
+
+    - name: Include Kubernetes file copy
+      include_tasks: copy_k8s_files.yml
+      when: use_kubernetes | default(false)
+
+    - name: Include Kubernetes manifest application
+      include_tasks: apply_manifests.yml
+      when: use_kubernetes | default(false)
+
+    - name: Include deployment
+      include_tasks: deploy.yml
+      when: not (use_kubernetes | default(false))
+
